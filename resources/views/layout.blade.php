@@ -12,7 +12,7 @@
         <div class="wrap">
             <strong>Cuadrante de turnos</strong>
             <a href="{{ route('roster.index') }}"
-                @if(request()->routeIs('roster.index')) aria-current="page" @endif>
+                @if(request()->routeIs('roster.index', 'roster.candidates')) aria-current="page" @endif>
                 Cuadrante
             </a>
             <a href="{{ route('employees.index') }}"

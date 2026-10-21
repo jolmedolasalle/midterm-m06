@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Http\Controllers\EmployeeController;
+use App\Http\Controllers\RosterCandidatesController;
 use App\Http\Controllers\RosterController;
 use Illuminate\Support\Facades\Route;
 
@@ -37,3 +38,5 @@ Route::post('/cuadrante/asignar', [RosterController::class, 'assign'])->name('ro
 Route::post('/cuadrante/quitar', [RosterController::class, 'remove'])->name('roster.remove');
 Route::post('/cuadrante/titulo', [RosterController::class, 'updateTitle'])->name('roster.title');
 Route::get('/cuadrante/resumen', [RosterController::class, 'summary'])->name('roster.summary');
+Route::get('/cuadrante/candidatos', [RosterCandidatesController::class, 'index'])->name('roster.candidates');
+Route::post('/cuadrante/automatico', [RosterCandidatesController::class, 'assignFirst'])->name('roster.auto');

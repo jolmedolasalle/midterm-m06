@@ -1,113 +1,88 @@
-# Proyecto base — ICB0006 · Acceso a datos
+# Cuadrante de turnos · Midterm M06
 
-Laravel 13 sobre PHP 8.4, con **Laravel Sail** y **sin base de datos**. Es el punto
-de partida de todo lo que harás en la sesión S02: de aquí sale la aplicación que se
-construye en vídeo, y de aquí salen también tus proyectos de los ejercicios.
+Aplicación de Acceso a Datos para organizar la semana de un comercio con doce empleados y tres turnos diarios. Parte del proyecto base y de la plantilla Classroom del curso.
 
-No hace nada todavía. Esa es la idea.
+PHP 8.4 y Laravel 13 con Docker y Laravel Sail. Los empleados y horarios son datos fijos; el cuadrante y su título se guardan en la sesión. No utiliza base de datos, registro de usuarios ni compilación de frontend.
 
----
+## Funcionalidades
 
-## Arrancar
+| Apartado | Implementación |
+| --- | --- |
+| F01 | Listado de empleados con filtro por rol y ordenación por nombre u horas. |
+| F02 | Ficha con id numérico, excepción propia y página 404 sin traza. |
+| F03 | Cuadrante semanal: asignar, sustituir y quitar, con redirección y mensaje flash. |
+| F04 | Form Request y reglas propias para un turno por empleado y día, y descanso mínimo de 12 horas. |
+| F05 | Resumen de horas, cobertura y días sin responsable; los avisos no bloquean. |
+| F06 | Contrato `RosterStore`, implementaciones intercambiables y selección en el provider. |
+| F07 | PHPDoc del almacenamiento en sesión y de su comportamiento inicial. |
+| F08, optativa | Consulta de empleados que pueden cubrir una celda vacía. |
+| F09, optativa | Asignación del primer candidato válido, recalculado al enviar el formulario. |
 
-**Lo único que necesitas instalado es Docker.** PHP, Composer y las extensiones
-vienen dentro de la imagen; no instales nada más.
+Se eligen exactamente F08 y F09 como optativas. El orden de candidatos es el de `Staff::all()`. Los avisos de exceso de contrato no excluyen personas: solo bloquean R01 y R02.
 
-> ### En Windows: la terminal va dentro de WSL2
->
-> `./vendor/bin/sail` es un script de bash que **no arranca desde PowerShell ni
-> desde Git Bash**: aborta con *"Unsupported operating system"*. Una sola vez:
->
-> 1. `wsl --install -d Ubuntu` desde PowerShell, y reinicia si te lo pide.
-> 2. **Abre Ubuntu y termina de configurarla** — te pedirá un usuario y una
->    contraseña de Linux. Hasta que no lo hagas, la distribución no está lista
->    aunque figure como instalada.
-> 3. Docker Desktop → *Settings → Resources → WSL integration* → activa esa
->    distribución → *Apply & restart*.
->
-> A partir de ahí, trabaja siempre desde la terminal de Ubuntu. En macOS y Linux
-> no hay nada de esto.
+## Entorno
 
-Primero, una sola vez, para que exista `vendor/` y con él el propio `sail`:
+En Windows, ejecutar los comandos dentro de Ubuntu en WSL2, con Docker Desktop abierto y la integración WSL activada. En Linux o macOS, utilizar la terminal correspondiente. No ejecutar Sail desde PowerShell.
+
+### Primera instalación en una copia nueva
+
+Desde la raíz del proyecto, instalar las dependencias con el contenedor de Composer del curso:
 
 ```bash
 docker run --rm -e COMPOSER_PROCESS_TIMEOUT=0 -v "$(pwd):/var/www/html" -w /var/www/html \
-  laravelsail/php84-composer:latest \
-  composer install
-
+  laravelsail/php84-composer:latest composer install
 cp .env.example .env
-```
-
-Y a partir de aquí, siempre:
-
-```bash
 ./vendor/bin/sail up -d
 ./vendor/bin/sail artisan key:generate
 ```
 
-Abre <http://localhost>. Tienes que ver una página que dice **"El contenedor
-responde"**. Si la ves, tu entorno está bien y puedes empezar.
+La copia de `.env` y la generación de la clave se hacen una vez en una instalación nueva. `.env` contiene la configuración local y no se sube a Git. No hay migraciones que ejecutar.
 
-> **La primera construcción tarda entre cinco y diez minutos**, porque no descarga
-> una imagen: la construye. Las siguientes son segundos.
-
-### El atajo que querrás
-
-En WSL (bash):
+### Trabajo habitual
 
 ```bash
-echo "alias sail='sh \$([ -f sail ] && echo sail || echo vendor/bin/sail)'" >> ~/.bashrc
-source ~/.bashrc
+./vendor/bin/sail up -d
 ```
 
-En macOS la terminal usa zsh, que no lee `~/.bashrc`:
+Abrir <http://localhost>: la raíz redirige al cuadrante. Desde su navegación se accede a empleados y resumen.
+
+Para detener los contenedores:
 
 ```bash
-echo "alias sail='sh \$([ -f sail ] && echo sail || echo vendor/bin/sail)'" >> ~/.zshrc
-source ~/.zshrc
+./vendor/bin/sail down
 ```
 
-**Regla mental: lo que antes empezaba por `php`, ahora empieza por `sail`.**
-
-| Antes | Aquí |
-|---|---|
-| `php artisan route:list` | `sail artisan route:list` |
-| `php artisan make:controller X` | `sail artisan make:controller X` |
-| `php artisan test` | `sail test` |
-| `composer require X` | `sail composer require X` |
-
----
-
-## Qué hay dentro
-
-| Dónde | Qué es |
-|---|---|
-| `routes/web.php` | Una ruta, la de la página de prueba. Bórrala cuando escribas las tuyas |
-| `resources/views/home.blade.php` | Esa página. Es lo primero que vas a sustituir |
-| `public/css/app.css` | El estilo, servido sin compilar nada |
-| `compose.yaml` | El contenedor: PHP 8.4 y **ningún servicio más** |
-| `.env.example` | La plantilla de configuración. **`.env` no se sube al repositorio, `.env.example` sí** |
-| `tests/` | Vacío de pruebas, con la infraestructura lista para las tuyas |
-
----
-
-## Para empezar tu proyecto
-
-Copia esta carpeta con el nombre que le toque, entra en ella y cámbiale el
-nombre a la aplicación en tu `.env`:
-
-```
-APP_NAME=Club
-```
-
-Arráncala igual que arriba:
+## Pruebas
 
 ```bash
-sail up -d
-sail artisan key:generate
+./vendor/bin/sail artisan test
 ```
 
-Si la base sigue arrancada, párala antes con `sail down` desde su carpeta: las
-dos quieren el puerto 80, y solo una puede tenerlo.
+Las pruebas suministradas en Classroom se conservan. Las adicionales comprueban casos límite de filtros, identificadores, reglas de descanso, sesión, eliminación, título escapado, avisos y optativas. La prueba de portada de `SmokeTest`, procedente de la base, se adapta a la redirección exigida en el enunciado.
 
-Haz un commit en cuanto la página de prueba te responda. Ese es tu punto cero.
+El flujo `.github/workflows/tests.yml`, proporcionado por el curso, ejecuta las pruebas con PHP 8.4 en GitHub Actions. Para trabajar localmente se utiliza Sail.
+
+## Contrato y sesión
+
+`RosterStore` conserva sus seis métodos originales. Los controladores que utilizan el cuadrante reciben esa interfaz en el constructor.
+
+En `app/Providers/AppServiceProvider.php`, la implementación de entrega es:
+
+```php
+\App\Stores\SessionRosterStore::class,
+```
+
+Para la demostración F06, cambiar solo esa línea por `\App\Stores\ArrayRosterStore::class,`. La aplicación mostrará el ejemplo fijo y las asignaciones no persistirán entre peticiones. Después de la demostración, volver a `SessionRosterStore`.
+
+Las claves de sesión son `roster.week` y `roster.title`. Una sesión nueva devuelve siete días con todas sus celdas vacías y un título vacío. El resumen se recalcula al consultarlo.
+
+## Organización y explicación
+
+- [Guía para entender y explicar el proyecto](docs/guia-para-explicar.md).
+- [F01 y F02: empleados y excepción](docs/avance-f01-f02.md).
+- [F03 a F07: cuadrante, reglas y contrato](docs/avance-f03-f07.md).
+- [F08 y F09: candidatos y relleno](docs/avance-f08-f09.md).
+
+Las vistas heredan de `layout.blade.php`. Los enlaces usan rutas con nombre, los formularios POST incluyen CSRF y los datos se muestran escapados con `{{ }}`. Las hojas de estilo se sirven desde `public/css`, sin dependencias de frontend.
+
+El código se ha desarrollado con ayuda de IA. Las preguntas PR01–PR03 y el vídeo forman parte de la entrega y deben explicar esta implementación. El control de estilo PHPCS/PSR-12 debe verificarse aparte antes de afirmar que se cumple el extra del enunciado.

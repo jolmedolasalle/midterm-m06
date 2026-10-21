@@ -86,4 +86,27 @@
         La asignación comprueba que no haya dos turnos el mismo día y que se respeten 12 horas de descanso.
         Consulta los avisos de cobertura y horas en el <a href="{{ route('roster.summary') }}">resumen semanal</a>.
     </p>
+
+    <h2 class="seccion">¿Quién puede cubrir un turno vacío?</h2>
+    <p class="texto-secundario">
+        Consulta los empleados disponibles y, si quieres, asigna al primero de la lista.
+        La búsqueda no cambia el cuadrante.
+    </p>
+    <form method="GET" action="{{ route('roster.candidates') }}" class="asignar panel">
+        <label>Día
+            <select name="day">
+                @foreach(\App\Data\Shifts::DAYS as $day)
+                    <option value="{{ $day }}" @selected(old('day') === $day)>{{ $day }}</option>
+                @endforeach
+            </select>
+        </label>
+        <label>Turno
+            <select name="shift">
+                @foreach(\App\Data\Shifts::names() as $shift)
+                    <option value="{{ $shift }}" @selected(old('shift') === $shift)>{{ $shift }}</option>
+                @endforeach
+            </select>
+        </label>
+        <button type="submit" class="primario">Buscar candidatos</button>
+    </form>
 @endsection
