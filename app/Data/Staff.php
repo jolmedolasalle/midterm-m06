@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Data;
 
+use App\Exceptions\EmployeeNotFoundException;
+
 /** La plantilla del comercio. Datos fijos: no se añaden ni se borran empleados. */
 final class Staff
 {
@@ -48,5 +50,17 @@ final class Staff
         }
 
         return null;
+    }
+
+    /** @throws EmployeeNotFoundException Si el identificador no está en la plantilla. */
+    public static function findOrFail(int $id): Employee
+    {
+        $employee = self::find($id);
+
+        if ($employee === null) {
+            throw new EmployeeNotFoundException($id);
+        }
+
+        return $employee;
     }
 }

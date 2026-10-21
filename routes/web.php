@@ -2,6 +2,9 @@
 
 declare(strict_types=1);
 
+use App\Http\Controllers\EmployeeController;
+use Illuminate\Support\Facades\Route;
+
 /*
  * Las rutas son tuyas. Dos condiciones:
  *
@@ -21,3 +24,8 @@ declare(strict_types=1);
  * La URL puede estar en castellano y el nombre en inglés: la URL es para el
  * usuario, el nombre es el identificador con el que trabaja tu código.
  */
+
+Route::get('/empleados', [EmployeeController::class, 'index'])->name('employees.index');
+Route::get('/empleados/{id}', [EmployeeController::class, 'show'])
+    ->whereNumber('id')
+    ->name('employees.show');
