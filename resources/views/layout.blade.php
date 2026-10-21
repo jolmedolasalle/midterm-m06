@@ -11,9 +11,17 @@
     <nav class="nav" aria-label="Navegación principal">
         <div class="wrap">
             <strong>Cuadrante de turnos</strong>
+            <a href="{{ route('roster.index') }}"
+                @if(request()->routeIs('roster.index')) aria-current="page" @endif>
+                Cuadrante
+            </a>
             <a href="{{ route('employees.index') }}"
                 @if(request()->routeIs('employees.*')) aria-current="page" @endif>
                 Empleados
+            </a>
+            <a href="{{ route('roster.summary') }}"
+                @if(request()->routeIs('roster.summary')) aria-current="page" @endif>
+                Resumen
             </a>
         </div>
     </nav>

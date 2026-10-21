@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace App\Rules;
 
 use App\Contracts\RosterStore;
+use App\Data\Shifts;
+use App\Data\Staff;
 use Closure;
 use Illuminate\Contracts\Validation\ValidationRule;
 
@@ -24,6 +26,23 @@ final class NoOverlap implements ValidationRule
 
     public function validate(string $attribute, mixed $value, Closure $fail): void
     {
-        // TODO F04
+        if (!in_array($this->day, Shifts::DAYS, true) || !in_array($this->shift, Shifts::names(), true)) {
+            return; // Los campos inválidos ya tienen su propio error en el Form Request.
+        }
+
+        $employee = Staff::find((int) $value);
+
+        if ($employee === null) {
+            return;
+        }
+
+        foreach ($this->store->all()[$this->day] as $shift => $employeeId) {
+            // Reasignar la misma celda no crea un segundo turno.
+            if ($shift !== $this->shift && $employeeId === $employee->id) {
+                $fail("{$employee->name} ya tiene el turno de {$shift} el {$this->day}.");
+
+                return;
+            }
+        }
     }
 }

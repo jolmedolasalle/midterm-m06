@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace App\Rules;
 
 use App\Contracts\RosterStore;
+use App\Data\Shifts;
+use App\Data\Staff;
 use Closure;
 use Illuminate\Contracts\Validation\ValidationRule;
 
@@ -33,6 +35,43 @@ final class MinimumRest implements ValidationRule
 
     public function validate(string $attribute, mixed $value, Closure $fail): void
     {
-        // TODO F04
+        if (!in_array($this->day, Shifts::DAYS, true) || !in_array($this->shift, Shifts::names(), true)) {
+            return;
+        }
+
+        $employee = Staff::find((int) $value);
+
+        if ($employee === null) {
+            return;
+        }
+
+        // Minutos desde el lunes a las 00:00. El final puede pasar de medianoche.
+        $start = Shifts::dayIndex($this->day) * 1440 + Shifts::startsAt($this->shift);
+        $end = Shifts::dayIndex($this->day) * 1440 + Shifts::endsAt($this->shift);
+
+        foreach ($this->store->forEmployee($employee->id) as $assignment) {
+            $day = $assignment['day'];
+            $shift = $assignment['shift'];
+
+            if ($day === $this->day && $shift === $this->shift) {
+                continue; // Se está sustituyendo esta celda, no añadiendo otro turno.
+            }
+
+            $otherStart = Shifts::dayIndex($day) * 1440 + Shifts::startsAt($shift);
+            $otherEnd = Shifts::dayIndex($day) * 1440 + Shifts::endsAt($shift);
+
+            // Se comprueban ambos sentidos, aunque el usuario rellene los días desordenados.
+            $rest = $start <= $otherStart ? $otherStart - $end : $start - $otherEnd;
+
+            if ($rest < self::MINIMUM_MINUTES) {
+                $hours = max(0, $rest) / 60;
+                $fail(
+                    "{$employee->name} necesita al menos 12 h de descanso: entre "
+                    . "{$this->day} ({$this->shift}) y {$day} ({$shift}) solo habría {$hours} h."
+                );
+
+                return;
+            }
+        }
     }
 }

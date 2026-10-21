@@ -5,9 +5,12 @@ declare(strict_types=1);
 namespace App\Http\Requests;
 
 use App\Contracts\RosterStore;
+use App\Data\Shifts;
+use App\Data\Staff;
 use App\Rules\MinimumRest;
 use App\Rules\NoOverlap;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 /**
  * F04 · Toda la validación de una asignación vive aquí, no en el controlador.
@@ -27,22 +30,27 @@ final class AssignShiftRequest extends FormRequest
      * Además de lo evidente — que el día, el turno y el empleado existan — las
      * dos reglas bloqueantes (R01 y R02) se implementan como reglas propias.
      *
-     * Las dos reglas propias ya están enchufadas: Laravel inyecta aquí el
-     * RosterStore igual que en un controlador, y cada regla recibe el cuadrante
-     * y el día y el turno del formulario. Te falta lo evidente, y el cuerpo de
-     * las dos reglas.
+     * Laravel inyecta el contrato. Cada regla recibe el cuadrante actual y
+     * la celda solicitada. bail detiene las reglas de un campo tras el primer
+     * error: un id inexistente no llega a las reglas de negocio.
      *
      * @return array<string, mixed>
      */
     public function rules(RosterStore $store): array
     {
-        $day = (string) $this->input('day');
-        $shift = (string) $this->input('shift');
+        $day = $this->input('day');
+        $shift = $this->input('shift');
+        $day = is_string($day) ? $day : '';
+        $shift = is_string($shift) ? $shift : '';
 
         return [
-            // TODO F04: day y shift, que existan en App\Data\Shifts
+            'day' => ['bail', 'required', 'string', Rule::in(Shifts::DAYS)],
+            'shift' => ['bail', 'required', 'string', Rule::in(Shifts::names())],
             'employee_id' => [
-                // TODO F04: que el empleado exista en App\Data\Staff
+                'bail',
+                'required',
+                'integer',
+                Rule::in(array_column(Staff::all(), 'id')),
                 new NoOverlap($store, $day, $shift),
                 new MinimumRest($store, $day, $shift),
             ],
@@ -58,7 +66,15 @@ final class AssignShiftRequest extends FormRequest
     public function messages(): array
     {
         return [
-            // TODO F04
+            'day.required' => 'Selecciona un día.',
+            'day.string' => 'El día debe ser uno de los siete días de la semana.',
+            'day.in' => 'El día seleccionado no existe.',
+            'shift.required' => 'Selecciona un turno.',
+            'shift.string' => 'Selecciona un único turno válido.',
+            'shift.in' => 'El turno seleccionado no existe.',
+            'employee_id.required' => 'Selecciona un empleado.',
+            'employee_id.integer' => 'El identificador del empleado debe ser un número entero.',
+            'employee_id.in' => 'El empleado seleccionado no pertenece a la plantilla.',
         ];
     }
 }

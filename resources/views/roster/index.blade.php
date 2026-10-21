@@ -1,16 +1,17 @@
-{{--
-    La rejilla 7 × 3 del cuadrante, ya hecha: no es un ejercicio de diseño.
+@extends('layout')
 
-    Le falta el marco: hazla heredar de TU layout con @extends y ponla dentro
-    de un @section. El formulario y el botón de quitar envían a
-    roster.assign y roster.remove, con los campos day, shift y employee_id.
---}}
+@section('title', 'Cuadrante semanal · Cuadrante de turnos')
 
+@section('content')
     {{-- El título es texto libre y se vuelve a mostrar: {{ }}, NUNCA {!! !!}. --}}
-    <h1>{{ $title ?? 'Semana sin título' }}</h1>
+    <header class="encabezado">
+        <p class="antetitulo">Planificación semanal</p>
+        <h1>{{ $title !== '' ? $title : 'Semana sin título' }}</h1>
+        <p class="texto-secundario">Un empleado por turno. Asignar una celda ocupada sustituye a su empleado.</p>
+    </header>
 
     @if ($errors->any())
-        <div class="errors">
+        <div class="errors" role="alert">
             <ul>
                 @foreach ($errors->all() as $error)
                     <li>{{ $error }}</li>
@@ -19,6 +20,18 @@
         </div>
     @endif
 
+    <form method="POST" action="{{ route('roster.title') }}" class="filtros panel">
+        @csrf
+        <div class="campo campo-titulo">
+            <label for="week-title">Título de la semana</label>
+            <input id="week-title" name="title" type="text" maxlength="160"
+                value="{{ is_string(old('title', $title)) ? old('title', $title) : $title }}"
+                placeholder="Por ejemplo: Semana del 19 de octubre">
+        </div>
+        <button type="submit" class="primario">Guardar título</button>
+    </form>
+
+    <div class="tabla-scroll">
     <div class="rejilla">
         <div></div>
         @foreach (\App\Data\Shifts::DAYS as $day)
@@ -33,9 +46,13 @@
             @endforeach
         @endforeach
     </div>
+    </div>
+
+    <p class="texto-secundario">Cada celda muestra quién cubre ese turno. Los turnos vacíos se marcan con un guion.</p>
 
     {{-- F03/F04 · Asignar. La validación vive en el Form Request. --}}
-    <form method="POST" action="{{ route('roster.assign') }}" class="asignar">
+    <h2 class="seccion">Asignar un turno</h2>
+    <form method="POST" action="{{ route('roster.assign') }}" class="asignar panel">
         @csrf
 
         <label>Día
@@ -65,3 +82,8 @@
         <button class="primario">Asignar</button>
     </form>
 
+    <p class="texto-secundario">
+        La asignación comprueba que no haya dos turnos el mismo día y que se respeten 12 horas de descanso.
+        Consulta los avisos de cobertura y horas en el <a href="{{ route('roster.summary') }}">resumen semanal</a>.
+    </p>
+@endsection

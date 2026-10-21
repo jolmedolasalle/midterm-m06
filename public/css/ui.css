@@ -74,6 +74,67 @@ input:focus-visible {
     font: inherit;
 }
 
+.campo input {
+    width: 100%;
+    padding: 0.4rem 0.6rem;
+    border: 1px solid var(--b);
+    border-radius: 0.25rem;
+    color: var(--t);
+    font: inherit;
+}
+
+.campo-titulo {
+    flex: 1 1 18rem;
+}
+
+.rejilla {
+    min-width: 55rem;
+}
+
+.seccion {
+    font-size: 1.15rem;
+    margin: 2rem 0 1rem;
+}
+
+form.asignar {
+    margin-top: 0;
+}
+
+.estado-aviso,
+.aviso {
+    color: #774816;
+    background: #fff6e5;
+    border: 1px solid #e7c994;
+    border-radius: 0.3rem;
+}
+
+.estado-aviso {
+    display: inline-block;
+    padding: 0.15rem 0.4rem;
+    font-size: 0.8rem;
+    white-space: nowrap;
+}
+
+.aviso {
+    padding: 0.75rem 1rem;
+}
+
+.aviso p {
+    margin-top: 0;
+}
+
+.lista-dias {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem 2rem;
+    padding-left: 1.25rem;
+    margin-bottom: 0;
+}
+
+.capitalizar {
+    text-transform: capitalize;
+}
+
 .tabla-scroll {
     overflow-x: auto;
 }

@@ -18,11 +18,10 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        // $this->app->bind(
-        //     \App\Contracts\RosterStore::class,
-        //     \App\Stores\SessionRosterStore::class,   // ← la tuya
-        //     // \App\Stores\ArrayRosterStore::class,  // ← la de la plantilla
-        // );
+        $this->app->bind(
+            \App\Contracts\RosterStore::class,
+            \App\Stores\SessionRosterStore::class, // Cambiar solo esta clase para demostrar F06.
+        );
     }
 
     public function boot(): void

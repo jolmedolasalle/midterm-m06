@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Http\Controllers\EmployeeController;
+use App\Http\Controllers\RosterController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -29,3 +30,10 @@ Route::get('/empleados', [EmployeeController::class, 'index'])->name('employees.
 Route::get('/empleados/{id}', [EmployeeController::class, 'show'])
     ->whereNumber('id')
     ->name('employees.show');
+
+Route::get('/', fn () => redirect()->route('roster.index'))->name('home');
+Route::get('/cuadrante', [RosterController::class, 'index'])->name('roster.index');
+Route::post('/cuadrante/asignar', [RosterController::class, 'assign'])->name('roster.assign');
+Route::post('/cuadrante/quitar', [RosterController::class, 'remove'])->name('roster.remove');
+Route::post('/cuadrante/titulo', [RosterController::class, 'updateTitle'])->name('roster.title');
+Route::get('/cuadrante/resumen', [RosterController::class, 'summary'])->name('roster.summary');

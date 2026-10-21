@@ -16,7 +16,9 @@ final class SmokeTest extends TestCase
 {
     public function test_the_application_answers_on_the_home_page(): void
     {
-        $this->get('/')->assertOk();
+        // La práctica sustituye la portada inicial por una redirección al cuadrante.
+        $this->get('/')->assertRedirect(route('roster.index'));
+        $this->get(route('roster.index'))->assertOk();
     }
 
     /**
