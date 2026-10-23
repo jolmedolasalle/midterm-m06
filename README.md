@@ -1,6 +1,6 @@
 # Cuadrante de turnos · Midterm M06
 
-Aplicación de Acceso a Datos para organizar la semana de un comercio con doce empleados y tres turnos diarios. Parte del proyecto base y de la plantilla Classroom del curso.
+Aplicación para organizar el cuadrante semanal de un comercio con doce empleados y tres turnos diarios.
 
 PHP 8.4 y Laravel 13 con Docker y Laravel Sail. Los empleados y horarios son datos fijos; el cuadrante y su título se guardan en la sesión. No utiliza base de datos, registro de usuarios ni compilación de frontend.
 
@@ -20,13 +20,15 @@ PHP 8.4 y Laravel 13 con Docker y Laravel Sail. Los empleados y horarios son dat
 
 Se eligen exactamente F08 y F09 como optativas. El orden de candidatos es el de `Staff::all()`. Los avisos de exceso de contrato no excluyen personas: solo bloquean R01 y R02.
 
-## Entorno
+## Requisitos
+
+Docker y Docker Compose. El entorno Sail del repositorio utiliza PHP 8.4 y la aplicación utiliza Laravel 13.
 
 En Windows, ejecutar los comandos dentro de Ubuntu en WSL2, con Docker Desktop abierto y la integración WSL activada. En Linux o macOS, utilizar la terminal correspondiente. No ejecutar Sail desde PowerShell.
 
 ### Primera instalación en una copia nueva
 
-Desde la raíz del proyecto, instalar las dependencias con el contenedor de Composer del curso:
+Desde la raíz del proyecto, instalar las dependencias con el contenedor de Composer de Sail:
 
 ```bash
 docker run --rm -e COMPOSER_PROCESS_TIMEOUT=0 -v "$(pwd):/var/www/html" -w /var/www/html \
@@ -44,7 +46,7 @@ La copia de `.env` y la generación de la clave se hacen una vez en una instalac
 ./vendor/bin/sail up -d
 ```
 
-Abrir <http://localhost>: la raíz redirige al cuadrante. Desde su navegación se accede a empleados y resumen.
+Abrir <http://localhost> (o el puerto configurado en `APP_PORT`): la raíz redirige al cuadrante. Desde su navegación se accede a empleados y resumen.
 
 Para detener los contenedores:
 
@@ -58,31 +60,14 @@ Para detener los contenedores:
 ./vendor/bin/sail artisan test
 ```
 
-Las pruebas suministradas en Classroom se conservan. Las adicionales comprueban casos límite de filtros, identificadores, reglas de descanso, sesión, eliminación, título escapado, avisos y optativas. La prueba de portada de `SmokeTest`, procedente de la base, se adapta a la redirección exigida en el enunciado.
-
-El flujo `.github/workflows/tests.yml`, proporcionado por el curso, ejecuta las pruebas con PHP 8.4 en GitHub Actions. Para trabajar localmente se utiliza Sail.
+Las pruebas de `tests/Feature` cubren empleados, validaciones, contrato, persistencia en sesión, operaciones del cuadrante, resumen y candidatos. El workflow `.github/workflows/tests.yml` ejecuta `php artisan test` con PHP 8.4.
 
 ## Contrato y sesión
 
-`RosterStore` conserva sus seis métodos originales. Los controladores que utilizan el cuadrante reciben esa interfaz en el constructor.
+`app/Contracts/RosterStore.php` define seis operaciones: `all()`, `assign()`, `remove()`, `forEmployee()`, `title()` y `setTitle()`. El cuadrante es un mapa de día → turno → id de empleado; una celda vacía contiene `null`. El almacén no valida reglas de negocio: los Form Requests y las reglas comprueban las entradas antes de guardar.
 
-En `app/Providers/AppServiceProvider.php`, la implementación de entrega es:
+Los controladores reciben `RosterStore` por inyección de dependencias. `app/Providers/AppServiceProvider.php` enlaza el contrato con `SessionRosterStore`. Para utilizar `ArrayRosterStore`, basta con cambiar la clase enlazada en ese provider, sin modificar controladores ni vistas. Esta implementación mantiene un ejemplo en memoria y sus cambios se pierden al terminar la petición.
 
-```php
-\App\Stores\SessionRosterStore::class,
-```
+`SessionRosterStore` utiliza las claves `roster.week` y `roster.title`. Una sesión nueva devuelve siete días con todas sus celdas vacías y un título vacío. Los cambios persisten entre peticiones de la misma sesión. Con `SESSION_DRIVER=file`, configurado en `.env.example`, Laravel guarda la sesión en `storage/framework/sessions`.
 
-Para la demostración F06, cambiar solo esa línea por `\App\Stores\ArrayRosterStore::class,`. La aplicación mostrará el ejemplo fijo y las asignaciones no persistirán entre peticiones. Después de la demostración, volver a `SessionRosterStore`.
-
-Las claves de sesión son `roster.week` y `roster.title`. Una sesión nueva devuelve siete días con todas sus celdas vacías y un título vacío. El resumen se recalcula al consultarlo.
-
-## Organización y explicación
-
-- [Guía para entender y explicar el proyecto](docs/guia-para-explicar.md).
-- [F01 y F02: empleados y excepción](docs/avance-f01-f02.md).
-- [F03 a F07: cuadrante, reglas y contrato](docs/avance-f03-f07.md).
-- [F08 y F09: candidatos y relleno](docs/avance-f08-f09.md).
-
-Las vistas heredan de `layout.blade.php`. Los enlaces usan rutas con nombre, los formularios POST incluyen CSRF y los datos se muestran escapados con `{{ }}`. Las hojas de estilo se sirven desde `public/css`, sin dependencias de frontend.
-
-El código se ha desarrollado con ayuda de IA. Las preguntas PR01–PR03 y el vídeo forman parte de la entrega y deben explicar esta implementación. El control de estilo PHPCS/PSR-12 debe verificarse aparte antes de afirmar que se cumple el extra del enunciado.
+El resumen se recalcula al consultarlo. El título se muestra escapado en Blade y los mensajes flash se presentan en la siguiente petición.
